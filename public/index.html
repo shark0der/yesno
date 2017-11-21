@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+    <style type="text/css">
+        div { width: 50%; float: left; }
+        span { font-size: 10vw; font-weight: bold; height: 50px; line-height: calc(100vh - 50px); text-align: center; display: block; }
+        .red { color: red; }
+        .green { color: green; }
+    </style>
+</head>
+<body>
+
+<div><span id="yes" class="green">DA: -</span></div>
+<div><span id="no" class="red">NU: -</span></div>
+
+<script src="/jquery-3.2.1.js"></script>
+<script src="/socket.io/socket.io.js"></script>
+<script>
+  $(function() {
+    var $yes = $('#yes');
+    var $no = $('#no');
+    var socket = io('//');
+
+    socket.on('update', function (data) {
+      $yes.text('DA: ' + data.yes);
+      $no.text('NU: ' + data.no);
+    });
+  });
+</script>
+
+</body>
+</html>
