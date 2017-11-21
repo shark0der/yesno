@@ -1,15 +1,19 @@
 const raspi = require('raspi');
 const gpio = require('raspi-gpio');
+const fs = require('fs');
 
-const data = { yes: 0, no: 0 };
+let data = { yes: 0, no: 0 };
 let lastyes = 1;
 let lastno = 1;
+let lastreset = 1;
 
 const express = require('express');
 const app = express();
 const server = require('http').Server(app);
 const io = require('socket.io')(server);
 const connections = [];
+
+console.log('starting up');
 
 /* web stuff */
 
@@ -25,13 +29,36 @@ io.on('connection', function (socket) {
   connections.push(socket);
 });
 
-function sendUpdate() {
-  console.log('update:', data);
+let promise = Promise.resolve();
+
+function readatstartup() {
+  const json = fs.readFileSync('db.json');
+  data = JSON.parse(json);
+  syncupdate(data);
+}
+
+function syncupdate(data) {
+
+  console.log('syncupdate:', data);
+
   connections.forEach(function(conn) {
     conn.emit('update', data);
     console.log('emitted:', data);
   });
+
+  promise = promise
+    .then(() => new Promise(function(resolve, reject) {
+      const json = JSON.stringify(data);
+      fs.writeFile('db.json', json, (err) => {
+        if (err) { reject(err); }
+        console.log('data saved: ', json);
+        resolve();
+      });
+    }))
+    .catch((e) => { console.log('Error writing:', e); });
 }
+
+readatstartup();
 
 /* gpio stuff */
 
@@ -42,37 +69,57 @@ raspi.init(() => {
     pullResistor: gpio.PULL_UP
   });
 
-  const pinno = new gpio.DigitalInput({
-    pin: 'P1-11',
-    pullResistor: gpio.PULL_UP
-  });
-
-  const y = () => {
+  const yes = () => {
     const value = pinyes.read();
     if (value != lastyes) {
       lastyes = value;
       console.log('>> Y:' + value);
       if (!value) {
         data.yes++;
-        sendUpdate();
+        syncupdate(data);
       }
     }
-    setTimeout(y, 25);
+    setTimeout(yes, 25);
   }
-  y();
+  yes();
 
-  const n = () => {
+  const pinno = new gpio.DigitalInput({
+    pin: 'P1-11',
+    pullResistor: gpio.PULL_UP
+  });
+
+  const no = () => {
     const value = pinno.read();
     if (value != lastno) {
       lastno = value;
       console.log('>> N:' + value);
       if (!value) {
         data.no++;
-        sendUpdate();
+        syncupdate(data);
       }
     }
-    setTimeout(n, 25);
+    setTimeout(no, 25);
   }
-  n();
+  no();
+
+  const pinreset = new gpio.DigitalInput({
+    pin: 'P1-13',
+    pullResistor: gpio.PULL_UP
+  });
+
+  const reset = () => {
+    const value = pinreset.read();
+    if (value != lastreset) {
+      lastreset = value;
+      console.log('>> R:' + value);
+      if (!value) {
+        data.no = 0;
+        data.yes = 0;
+        syncupdate(data);
+      }
+    }
+    setTimeout(reset, 25);
+  }
+  reset();
 
 });

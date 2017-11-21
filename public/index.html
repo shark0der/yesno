@@ -1,16 +1,20 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title></title>
-    <style type="text/css">
-        div { width: 50%; float: left; }
-        span { font-size: 10vw; font-weight: bold; height: 50px; line-height: calc(100vh - 50px); text-align: center; display: block; }
-        .red { color: red; }
-        .green { color: green; }
-    </style>
+  <title></title>
+  <style type="text/css">
+    html, body { margin: 0; padding: 0; overflow: hidden; }
+    body { background-image: url("logo.png"); }
+    div { width: 50%; float: left; }
+    .question { margin-top: 15vh; font-size: 4vw; position: absolute; text-align: center; width: 100%; font-weight: bold; color: #32afc7; }
+    .red, .green { font-size: 10vw; font-weight: bold; line-height: calc(100vh - 50px); text-align: center; display: block; }
+    .red { color: red; }
+    .green { color: green; }
+  </style>
 </head>
 <body>
 
+<div class="question"><span>Stiți să aplicați corect crema adezivă COREGA?</span></div>
 <div><span id="yes" class="green">DA: -</span></div>
 <div><span id="no" class="red">NU: -</span></div>
 
